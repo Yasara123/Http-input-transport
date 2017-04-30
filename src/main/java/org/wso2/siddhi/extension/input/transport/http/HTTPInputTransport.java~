@@ -80,7 +80,7 @@ public class HTTPInputTransport extends InputTransport {
         } catch (NullPointerException e) {//find
             log.error("Error disconnecting the HTTP receiver", e);
         } catch (Exception e) {//find
-            log.error("Error shutting down the threads for the HTTP Message Processor", e);
+            log.error("Error shutting down the threads for the JMS Message Processor", e);
         }
     }
 
