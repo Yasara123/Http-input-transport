@@ -18,6 +18,9 @@
  */
 package org.wso2.siddhi.extension.input.transport.http;
 
+import com.google.common.io.ByteStreams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.messaging.CarbonCallback;
 import org.wso2.carbon.messaging.CarbonMessage;
 import org.wso2.carbon.messaging.CarbonMessageProcessor;
@@ -26,33 +29,45 @@ import org.wso2.carbon.messaging.DefaultCarbonMessage;
 import org.wso2.carbon.messaging.MapCarbonMessage;
 import org.wso2.carbon.messaging.TextCarbonMessage;
 import org.wso2.carbon.messaging.TransportSender;
+import org.wso2.carbon.messaging.exceptions.ClientConnectorException;
+import org.wso2.carbon.transport.http.netty.common.Constants;
+import org.wso2.carbon.transport.http.netty.sender.HTTPClientConnector;
 import org.wso2.siddhi.core.stream.input.source.SourceEventListener;
+import org.wso2.siddhi.extension.input.transport.http.Util.PausableThreadPoolExecutor;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 public class HTTPMessageProcessor implements CarbonMessageProcessor {
     private SourceEventListener sourceEventListener;
-    private ExecutorService executorService;
+    private PausableThreadPoolExecutor executorService;
     private ClientConnector clientConnector;
-    public static final String TEST_VALUE = "Test Message from Yasara";
+    private LinkedBlockingQueue<Runnable> queue;
+    private static final Logger logger = LoggerFactory.getLogger(HTTPMessageProcessor.class);
+    private final long KEEP_ALIVE_TIME = 10;
+    private final int MAX_THREAD_POOL_SIZE_MULTIPLIER = 2;
+
     public HTTPMessageProcessor(SourceEventListener sourceEventListener, int threadPoolSize) {
         this.sourceEventListener = sourceEventListener;
-        this.executorService = Executors.newFixedThreadPool(threadPoolSize);
+        int maxThreadPoolSize = MAX_THREAD_POOL_SIZE_MULTIPLIER *  threadPoolSize;
+        this.queue = new LinkedBlockingQueue<>();
+        this.executorService = new PausableThreadPoolExecutor( threadPoolSize, maxThreadPoolSize, KEEP_ALIVE_TIME,
+                TimeUnit.SECONDS, queue);
+        this.clientConnector= new HTTPClientConnector();
     }
-    public HTTPMessageProcessor(){
 
-    }
-    public HTTPMessageProcessor getInstance(){
-        return this;
-    }
     @Override
     public boolean receive(CarbonMessage carbonMessage, CarbonCallback carbonCallback) throws Exception {
-        executorService.submit(new HTTPWorkerThread(carbonMessage, carbonCallback, sourceEventListener));
-        carbonCallback.done(carbonMessage);
+        executorService.execute(new HTTPWorkerThread(carbonMessage, carbonCallback, sourceEventListener,clientConnector));
+
         return true;
     }
 
@@ -62,15 +77,34 @@ public class HTTPMessageProcessor implements CarbonMessageProcessor {
 
     @Override
     public void setClientConnector(ClientConnector clientConnector) {
-        this.clientConnector = clientConnector;
+
     }
 
     @Override
-    public String getId() {
+    public String getId()
+    {
         return "HTTP-message-processor";
     }
 
-    public void disconnect() throws InterruptedException {
+    void pause() {
+        executorService.pause();
+    }
+
+    void resume()
+    {
+        executorService.resume();
+    }
+
+    public void clear() {
+        queue.clear();
+    }
+
+    public boolean isEmpty()
+    {
+        return queue.isEmpty();
+    }
+
+    void disconnect() {
         executorService.shutdown();
     }
 }

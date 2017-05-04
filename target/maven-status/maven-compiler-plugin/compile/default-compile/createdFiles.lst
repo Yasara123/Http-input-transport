@@ -2,6 +2,7 @@ org/wso2/siddhi/extension/input/transport/http/server/HTTPServerHandler.class
 org/wso2/siddhi/extension/input/transport/http/TestUtil$1.class
 org/wso2/siddhi/extension/input/transport/http/exception/HTTPInputAdaptorRuntimeException.class
 org/wso2/siddhi/extension/input/transport/http/server/HTTPServerInitializer.class
+org/wso2/siddhi/extension/input/transport/http/TestUtil$2.class
 org/wso2/siddhi/extension/input/transport/http/HTTPMessageProcessor.class
 META-INF/annotations/org.wso2.siddhi.annotation.Extension
 org/wso2/siddhi/extension/input/transport/http/server/HTTPServer.class

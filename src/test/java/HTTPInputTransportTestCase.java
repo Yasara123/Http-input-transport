@@ -17,52 +17,40 @@
  *
  */
 
-import http.BalCallback;
-import http.HTTPClient2;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import io.netty.handler.codec.http.DefaultFullHttpRequest;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import org.apache.commons.io.Charsets;
+import io.netty.handler.codec.http.HttpMethod;
+import junit.framework.Assert;
 import org.junit.Test;
-import org.wso2.carbon.connector.framework.ConnectorManager;
-import org.wso2.carbon.messaging.CarbonMessage;
-import org.wso2.carbon.messaging.ClientConnector;
-import org.wso2.carbon.messaging.Constants;
-import org.wso2.carbon.messaging.DefaultCarbonMessage;
-import org.wso2.carbon.messaging.exceptions.ClientConnectorException;
+import org.wso2.carbon.transport.http.netty.config.TransportsConfiguration;
 import org.wso2.siddhi.core.ExecutionPlanRuntime;
 import org.wso2.siddhi.core.SiddhiManager;
 import org.wso2.siddhi.core.event.Event;
 import org.wso2.siddhi.core.query.output.callback.QueryCallback;
 import org.wso2.siddhi.core.util.EventPrinter;
-import org.wso2.siddhi.extension.input.transport.http.HTTPInputTransport;
-import org.wso2.siddhi.extension.input.transport.http.HTTPMessageProcessor;
+import org.wso2.siddhi.extension.input.transport.http.Util.ServerUtil;
+import org.wso2.siddhi.extension.input.transport.http.server.HTTPServer;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-import static io.netty.handler.codec.http.HttpMethod.POST;
-import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
+import static org.junit.Assert.assertEquals;
 
 public class HTTPInputTransportTestCase {
     private List<String> receivedEventNameList;
-    private final String PROVIDER_URL = "vm://localhost?broker.persistent=false";
+    private URI baseURI = URI.create(String.format("http://%s:%d", "localhost", 9005));
 
     @Test
     public void TestHTTPTopicInputTransport() throws InterruptedException {
         receivedEventNameList = new ArrayList<>(2);
-
-        // starting the ActiveMQ broker
-      //  ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(PROVIDER_URL);
-
-        // deploying the execution plan
         SiddhiManager siddhiManager = new SiddhiManager();
         String inStreamDefinition = "" +
                 "@source(type='http', @map(type='text'), "
-                + "factoryInitial='org.apache.activemq.jndi.ActiveMQInitialContextFactory', "
-                + "providerUrl='vm://localhost',"
+                + "HOST='localhost', "
+                + "PORT='9005',"
+                + "METHOD='POST', "
+                + "PATH='/'"
                 +")" +
                 "define stream inputStream (name string, age int, country string);";
         String query = ("@info(name = 'query1') " +
@@ -81,35 +69,38 @@ public class HTTPInputTransportTestCase {
             }
         });
         executionPlanRuntime.start();
-	     HTTPClient2 httpClient = null;
-        try {
-            httpClient = new HTTPClient2(false, "localhost", 8420);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
-        String json ="This is the value I send";
-       // FullHttpRequest req =new FullHttpRequest();
-        ByteBuf buf= Unpooled.wrappedBuffer(json.getBytes(Charsets.UTF_8));
-        DefaultFullHttpRequest request = new DefaultFullHttpRequest(HTTP_1_1, POST, "/",buf);
-       // String json = HTTPMessageProcessor.TEST_VALUE;
-
-        request.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain");
-        request.headers().set(HttpHeaderNames.ACCEPT, "text/plain");
-        ByteBuf buffer = request.content().clear();
-        int p0 = buffer.writerIndex();
-        buffer.writeBytes(json.getBytes());
-        int p1 = buffer.writerIndex();
-        request.headers().set(HttpHeaderNames.CONTENT_LENGTH, Integer.toString(p1 - p0));
-        int send = 0;
-        try {
-            send = httpClient.send(request);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        String response = httpClient.getResponse(send);
-        System.out.println(response);
+        // publishing events
+        List<String> expected = new ArrayList<>(2);
+        expected.add("John");
+        expected.add("Mike");
+        String event1 ="John,26,USA";
+        String event2 ="Mike,32,Germany";
+        HTTPServer httpServer=ServerUtil.startHTTPServer(9050);
+        publishEvent( event1);
+        publishEvent(event2);
+       Assert.assertEquals("HTTP Input Transport expected input not received", expected, receivedEventNameList);
+       ServerUtil.shutDownHttpServer(httpServer);
+       executionPlanRuntime.shutdown();
 
     }
+public void publishEvent(String event){
+    try {
 
+        HttpURLConnection urlConn = null;
+
+        try {
+            urlConn = ServerUtil.request(baseURI, "/", HttpMethod.POST.name(), true);
+        } catch (IOException e) {
+            ServerUtil.handleException("IOException occurred while running the HTTPInputTransportTestCase", e);
+        }
+        ServerUtil.writeContent(urlConn, event) ;
+        assertEquals(200, urlConn.getResponseCode());
+        String content2 = urlConn.getResponseMessage();
+        String content = ServerUtil.getContent(urlConn);
+       // urlConn.disconnect();
+    } catch (IOException e) {
+        ServerUtil.handleException("IOException occurred while running the HTTPInputTransportTestCase", e);
+    }
+}
 }

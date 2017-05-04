@@ -28,7 +28,7 @@ import io.netty.util.CharsetUtil;
 import io.netty.util.internal.PlatformDependent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.wso2.siddhi.extension.input.transport.http.TestUtil;
+import org.wso2.siddhi.extension.input.transport.http.Util.ServerUtil;
 
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Map;
@@ -101,7 +101,7 @@ public class HTTPResponseHandler extends SimpleChannelInboundHandler<FullHttpRes
             Entry<ChannelFuture, ChannelPromise> channelFutureChannelPromiseEntry = streamIdPromiseMap.get(streamId);
             if (channelFutureChannelPromiseEntry != null) {
                 ChannelFuture writeFuture = channelFutureChannelPromiseEntry.getKey();
-                if (!writeFuture.awaitUninterruptibly(TestUtil.HTTP2_RESPONSE_TIME_OUT, TestUtil
+                if (!writeFuture.awaitUninterruptibly(ServerUtil.HTTP2_RESPONSE_TIME_OUT, ServerUtil
                         .HTTP2_RESPONSE_TIME_UNIT)) {
                     streamIdPromiseMap.remove(streamId);
                     throw new IllegalStateException("Timed out waiting to write for stream id " + streamId);
@@ -111,7 +111,7 @@ public class HTTPResponseHandler extends SimpleChannelInboundHandler<FullHttpRes
                     throw new RuntimeException(writeFuture.cause());
                 }
                 ChannelPromise promise = channelFutureChannelPromiseEntry.getValue();
-                if (!promise.awaitUninterruptibly(TestUtil.HTTP2_RESPONSE_TIME_OUT, TestUtil
+                if (!promise.awaitUninterruptibly(ServerUtil.HTTP2_RESPONSE_TIME_OUT, ServerUtil
                         .HTTP2_RESPONSE_TIME_UNIT)) {
                     streamIdPromiseMap.remove(streamId);
                     throw new IllegalStateException("Timed out waiting for response on stream id " + streamId);

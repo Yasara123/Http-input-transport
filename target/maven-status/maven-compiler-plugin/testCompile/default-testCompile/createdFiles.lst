@@ -1,0 +1,16 @@
+HttpUtility.class
+http/HttpResponse.class
+HTTPInputTransportTestCase3.class
+HTTPInputTransportTestCase2$1.class
+HTTPInputTransportTestCase3$1.class
+http/HTTPResponseHandler.class
+http/HTTPClientInitializer$UserEventLogger.class
+http/HTTPClientInitializer$UpgradeRequestHandler.class
+http/HTTPSettingsHandler.class
+http/HTTPClient.class
+http/HTTPClientInitializer$1.class
+HTTPInputTransportTestCase2.class
+HTTPInputTransportTestCase$1.class
+http/HTTPClientInitializer.class
+HTTPInputTransportTestCase.class
+http/HttpClientRequest.class

@@ -18,31 +18,60 @@
  */
 package org.wso2.siddhi.extension.input.transport.http;
 
+import com.google.common.io.ByteStreams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wso2.carbon.messaging.CarbonCallback;
 import org.wso2.carbon.messaging.CarbonMessage;
-import org.wso2.carbon.messaging.MapCarbonMessage;
-import org.wso2.carbon.messaging.TextCarbonMessage;
+import org.wso2.carbon.messaging.ClientConnector;
+import org.wso2.carbon.messaging.DefaultCarbonMessage;
+import org.wso2.carbon.messaging.exceptions.ClientConnectorException;
+import org.wso2.carbon.transport.http.netty.common.Constants;
 import org.wso2.siddhi.core.stream.input.source.SourceEventListener;
-import org.wso2.siddhi.extension.input.transport.http.exception.HTTPInputAdaptorRuntimeException;
+import org.wso2.siddhi.extension.input.transport.http.Util.ServerUtil;
 
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
 
 public class HTTPWorkerThread implements Runnable {
     private CarbonMessage carbonMessage;
     private CarbonCallback carbonCallback;
     private SourceEventListener sourceEventListener;
-
-    public HTTPWorkerThread(CarbonMessage cMessage, CarbonCallback cCallback, SourceEventListener sourceEventListener) {
+    private ClientConnector clientConnector;
+    private static final Logger logger = LoggerFactory.getLogger(HTTPWorkerThread.class);
+    public HTTPWorkerThread(CarbonMessage cMessage, CarbonCallback cCallback, SourceEventListener sourceEventListener, ClientConnector clientConnector) {
         this.carbonMessage = cMessage;
         this.carbonCallback = cCallback;
         this.sourceEventListener = sourceEventListener;
+        this.clientConnector=clientConnector;
     }
 
     @Override
     public void run() {
-        if (carbonMessage instanceof TextCarbonMessage) {
+        try {
+            if (carbonMessage.getProperty(org.wso2.carbon.messaging.Constants.DIRECTION) != null && carbonMessage
+                    .getProperty(org.wso2.carbon.messaging.Constants.DIRECTION)
+                    .equals(org.wso2.carbon.messaging.Constants.DIRECTION_RESPONSE)) {
+                InputStream inputStream = carbonMessage.getInputStream();
+                String response = new String(ByteStreams.toByteArray(inputStream), Charset.defaultCharset());
+                String alteredContent = "Altered " + response + " content";
+                sourceEventListener.onEvent(response);
+                DefaultCarbonMessage defaultCarbonMessage = new DefaultCarbonMessage();
+                defaultCarbonMessage.setStringMessageBody(alteredContent);
+                carbonCallback.done(defaultCarbonMessage);
+            } else {
+                carbonMessage.setProperty(Constants.HOST, ServerUtil.TEST_HOST);
+                carbonMessage.setProperty(Constants.PORT, ServerUtil.TEST_SERVER_PORT);
+                clientConnector.send(carbonMessage, carbonCallback);
+            }
+        } catch (IOException e) {
+            logger.error("Error cast i to byte stream  ", e);
+        } catch (ClientConnectorException e) {
+            e.printStackTrace();
+        }
+
+     /*   if (carbonMessage instanceof TextCarbonMessage) {
             String event = ((TextCarbonMessage) carbonMessage).getText();
             sourceEventListener.onEvent(event);
         } else if (carbonMessage instanceof MapCarbonMessage) {
@@ -58,6 +87,6 @@ public class HTTPWorkerThread implements Runnable {
         }
         if (carbonCallback != null) {
             carbonCallback.done(carbonMessage);
-        }
+        }*/
     }
 }

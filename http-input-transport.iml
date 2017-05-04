@@ -10,26 +10,26 @@
           <property key="Bundle-Name" value="siddhi-extension-http-input-transport" />
           <property key="Export-Package" value="org.wso2.siddhi.extension.input.transport.http.*" />
           <property key="Import-Package" value="*;resolution:=optional" />
-          <property key="Include-Resource" value="META-INF=$MODULE_DIR$/target/classes/META-INF" />
+          <property key="Include-Resource" value="META-INF=target/classes/META-INF" />
           <property key="DynamicImport-Package" value="*" />
         </additionalProperties>
         <additionalJARContents />
       </configuration>
     </facet>
   </component>
-  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_8">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_8" inherit-compiler-output="false">
     <output url="file://$MODULE_DIR$/target/classes" />
     <output-test url="file://$MODULE_DIR$/target/test-classes" />
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/src/main/java" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/main/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/test/java" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/src/test/resources" type="java-test-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/target/maven-shared-archive-resources" type="java-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/test/resources" type="java-resource" />
+      <excludeFolder url="file://$MODULE_DIR$/../../../../http-input-transport/target" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="Maven: org.wso2.siddhi:siddhi-annotations:4.0.0-SNAPSHOT" level="project" />
     <orderEntry type="module" module-name="siddhi-core" />
     <orderEntry type="module" module-name="siddhi-query-compiler" />
     <orderEntry type="library" name="Maven: org.mvel:mvel2:2.2.1.Final" level="project" />

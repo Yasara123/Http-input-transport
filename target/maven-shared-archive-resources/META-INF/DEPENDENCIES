@@ -293,7 +293,7 @@ From: 'WSO2' (http://www.wso2.org/)
     License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
   - MSF4J - All in one jar file (http://wso2.org/msf4j-all) org.wso2.msf4j:msf4j-all:jar:2.1.1
     License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
-  - Siddhi Annotations (http://www.wso2.org/siddhi/modules/siddhi-annotations/) org.wso2.siddhi:siddhi-annotations:bundle:4.0.0-SNAPSHOT
+  - Siddhi Annotations (http://www.wso2.org/siddhi/siddhi-annotations/) org.wso2.siddhi:siddhi-annotations:bundle:4.0.0-SNAPSHOT
     License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
   - Siddhi Core (http://www.wso2.org/siddhi/modules/siddhi-core/) org.wso2.siddhi:siddhi-core:bundle:4.0.0-SNAPSHOT
     License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)

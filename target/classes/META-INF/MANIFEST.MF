@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1493545791302
-Build-Jdk: 1.8.0_121
-Built-By: yasara
+Bnd-LastModified: 1493575499245
+Build-Jdk: 1.8.0_101
+Built-By: sameerag
 Bundle-Description: Siddhi, high performing Complex Event Processing Eng
  ine
 Bundle-DocURL: http://www.wso2.org/
